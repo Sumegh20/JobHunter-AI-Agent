@@ -1,0 +1,89 @@
+# research_task:
+#   description: >
+#     Search for job opportunities from the following platforms that match a candidate's profile without applying. Gather, extract, and structure job-related information based on the provided criteria. The information must be accurate, up-to-date, and well-organized for the next agent to process. 
+#     Use the following criteria to search for jobs:
+#       Skills: {skills}
+#       Years of Experience: {experience}
+#       Location: {location}
+#       Keywords: {keywords}
+#       Timeframe: Jobs posted in the past {timeframe} (e.g., past 24 hours, past 1 week)
+#       Platforms: {platforms}
+#   expected_output: >
+#     A structured list of job postings in a machine-readable format, containing key job details like Job Title, Company Name, Location, Job Type (Full-time, Part-time, Contract, Remote, Hybrid, On-site), Required Skills, Experience Level, Salary Range (if available), Job Description Summary, Application Link, recruiter email id (if available).
+
+# filter_task:
+#   description: >
+#     Read the candidate's resume, assign a relevance score (0-100%) based on key factors such as skills match, required experience, location, and keyword alignment. Jobs that score below the {threshold} should be filtered out.
+#   expected_output: >
+#     The final output should be a structured list of the most suitable job opportunities, ensuring only the best matches are passed on for the next stage.
+
+# writer_task:
+#   description: >
+#     Generate a well-structured and professional job report using job listings from the Tech Job Hunter Agent and relevance-scored listings from the Tech Job Analyst Agent. The report must include the top job matches, clearly presenting the job title, company name, location, relevance score, and application link in an easy-to-read format. Ensure that only jobs meeting the minimum relevance threshold are included.
+#   expected_output: >
+#     The final output should be a structured file containing the top {num_jobs} most suitable job opportunities, ranked from highest to lowest relevance.
+
+research_task:
+  description: >
+    Search for job opportunities on the specified platforms that match a candidate's profile. Ensure job postings are **valid**, meet the given criteria, and were posted within the requested timeframe. If the required number of jobs is not found, retry the search with variations.
+
+    Use the following criteria to search for jobs:
+      - Skills: {skills}
+      - Years of Experience: {experience}
+      - Location: {location}
+      - Keywords: {keywords}
+      - Timeframe: Jobs posted in the past {timeframe} days (e.g., past 24 hours, past 7 days, past 30 days)
+      - Platforms: {platforms}
+
+  expected_output: >
+    A structured list of job postings in JSON format, **containing only valid jobs** that match the criteria:
+      - Job Title
+      - **Company Name (Must be present)**
+      - **Valid Job Link (Verify before returning)**
+      - Location
+      - Job Type (Full-time, Part-time, Contract, Remote, Hybrid, On-site)
+      - Required Skills
+      - Experience Level
+      - Salary Range (if available)
+      - Job Description Summary
+      - Recruiter Email ID (if available)
+      - **Posting Date (Must be within the timeframe)**
+    
+    ⚠️ **Do not return jobs with missing details (e.g., no company name, invalid link, or outside the timeframe).**
+    ⚠️ **Ensure at least {num_jobs} jobs are returned. If fewer jobs are found, retry with alternative search queries.**
+
+filter_task:
+  description: >
+    Read the candidate's resume, analyze each job listing, and assign a relevance score (0-100%) based on:
+      - Skills match
+      - Required experience
+      - Location match
+      - Keyword alignment
+      - Job posting date relevance
+
+    Discard jobs that:
+      - Do not meet the minimum relevance score ({threshold})
+      - Have missing or invalid fields (e.g., missing company name, invalid job link, outdated postings)
+      - Do not match location
+    
+  expected_output: >
+    A structured JSON list of **only the most suitable job opportunities**, ensuring that only the highest-scoring jobs are passed on. Jobs below the **{threshold}% relevance score** must be filtered out.
+
+writer_task:
+  description: >
+    Generate a **well-structured, professional job report** using job listings from the Tech Job Hunter Agent and relevance-scored listings from the Tech Job Analyst Agent. The report must:
+      - Include the **exact number of jobs requested ({num_jobs})**
+      - List jobs from **highest to lowest relevance**
+      - Ensure **all links are functional** before including them
+      - Summarize industry insights, salary expectations, and career recommendations
+
+  expected_output: >
+    A structured report containing the **top {num_jobs} job opportunities**, ranked from highest to lowest relevance. Each job entry must include:
+      - Job Title
+      - Company Name
+      - Location
+      - Relevance Score
+      - Application Link (✅ Verified)
+    
+    ⚠️ **If fewer jobs are found than requested, retry the process to find additional matches.**
+    ⚠️ **Do not include jobs with invalid links, missing fields, or outdated posting dates.**
